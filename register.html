@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShopX — Register</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <header class="header">
+  <a class="logo" href="index.html">ShopX</a>
+  <nav class="nav">
+    <a href="index.html">Home</a>
+    <a href="category.html">Categories</a>
+    <a href="orders.html" id="ordersLink" style="display:none">Orders</a>
+  </nav>
+  <form id="siteSearchForm" class="site-search">
+    <input id="siteSearchInput" type="search" placeholder="Search products…" />
+    <select id="siteSearchCat">
+      <option value="all">All</option>
+    </select>
+    <button class="btn" type="submit">Search</button>
+  </form>
+  <div class="auth-area" id="authArea"></div>
+</header>
+
+
+  <main class="container narrow">
+    <form id="registerForm" class="card form">
+      <h1>Create your account</h1>
+
+      <label class="field">
+        <span>Full Name</span>
+        <input type="text" name="name" placeholder="Jane Doe" required />
+      </label>
+
+      <label class="field">
+        <span>Email</span>
+        <input type="email" name="email" placeholder="you@example.com" required />
+      </label>
+
+      <label class="field">
+        <span>Password</span>
+        <input type="password" name="password" minlength="6" placeholder="Min 6 characters" required />
+      </label>
+
+      <label class="field">
+        <span>Confirm Password</span>
+        <input type="password" name="confirm" minlength="6" placeholder="Re-enter password" required />
+      </label>
+
+      <button class="btn primary" type="submit">Create Account</button>
+      <p class="muted">Already have an account? <a href="login.html">Sign in</a></p>
+      <p id="registerMsg" class="msg"></p>
+    </form>
+  </main>
+
+  <footer class="footer">© <span id="year"></span> ShopX.</footer>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/app.js"></script>
+  <script>
+    renderAuthArea(true);
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    document.getElementById('registerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const f = new FormData(e.target);
+      const name = (f.get('name') || '').toString().trim();
+      const email = (f.get('email') || '').toString().trim();
+      const password = (f.get('password') || '').toString();
+      const confirm = (f.get('confirm') || '').toString();
+
+      const msg = document.getElementById('registerMsg');
+      if (password !== confirm) {
+        msg.textContent = 'Passwords do not match.';
+        msg.className = 'msg error';
+        return;
+      }
+      const res = register({ name, email, password });
+      if (res.ok) {
+        msg.textContent = 'Account created! Redirecting to login…';
+        msg.className = 'msg success';
+        setTimeout(()=> location.href = 'login.html', 600);
+      } else {
+        msg.textContent = res.error;
+        msg.className = 'msg error';
+      }
+    });
+  </script>
+</body>
+</html>

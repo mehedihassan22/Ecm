@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShopX — Checkout</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<header class="header">
+  <a class="logo" href="index.html">ShopX</a>
+  <nav class="nav">
+    <a href="index.html">Home</a>
+    <a href="category.html">Categories</a>
+    <a href="orders.html" id="ordersLink" style="display:none">Orders</a>
+  </nav>
+  <form id="siteSearchForm" class="site-search">
+    <input id="siteSearchInput" type="search" placeholder="Search products…" />
+    <select id="siteSearchCat">
+      <option value="all">All</option>
+    </select>
+    <button class="btn" type="submit">Search</button>
+  </form>
+  <div class="auth-area" id="authArea"></div>
+</header>
+
+
+<main class="container">
+  <h1>Checkout</h1>
+  <div class="grid-2">
+    <section class="card section">
+      <h3>Shipping Details</h3>
+      <form id="checkoutForm" class="form">
+        <div class="input-row">
+          <label class="field">
+            <span>Full Name</span>
+            <input name="name" type="text" placeholder="Your name" required />
+          </label>
+          <label class="field">
+            <span>Phone</span>
+            <input name="phone" type="tel" placeholder="+8801XXXXXXXXX" required />
+          </label>
+        </div>
+        <label class="field">
+          <span>Address</span>
+          <input name="address" type="text" placeholder="Street address" required />
+        </label>
+        <div class="input-row">
+          <label class="field">
+            <span>City</span>
+            <input name="city" type="text" placeholder="City" required />
+          </label>
+          <label class="field">
+            <span>Postal Code</span>
+            <input name="zip" type="text" placeholder="ZIP/Postal" required />
+          </label>
+        </div>
+
+        <div class="hr"></div>
+        <h3>Payment Method</h3>
+        <label class="field">
+          <select id="payMethod" required>
+            <option value="cod">Cash on Delivery (COD)</option>
+            <option value="card">Debit/Credit Card (Demo)</option>
+            <option value="wallet">Mobile Wallet (Demo)</option>
+          </select>
+        </label>
+
+        <div id="cardBox" class="card section" style="display:none">
+          <span class="badge pay">Card (Demo)</span>
+          <div class="input-row" style="margin-top:8px">
+            <label class="field">
+              <span>Card Number</span>
+              <input id="cardNumber" placeholder="4111 1111 1111 1111" />
+            </label>
+            <label class="field">
+              <span>Expiry</span>
+              <input id="cardExp" placeholder="MM/YY" />
+            </label>
+          </div>
+          <label class="field">
+            <span>CVC</span>
+            <input id="cardCvc" placeholder="123" />
+          </label>
+          <p class="help">This is a demo-only UI (no real charge).</p>
+        </div>
+
+        <div id="walletBox" class="card section" style="display:none">
+          <span class="badge pay">Wallet (Demo)</span>
+          <label class="field" style="margin-top:8px">
+            <span>Wallet Provider</span>
+            <select id="walletProvider">
+              <option value="bkash">bKash (Demo)</option>
+              <option value="nagad">Nagad (Demo)</option>
+              <option value="rocket">Rocket (Demo)</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Wallet Number</span>
+            <input id="walletNumber" placeholder="01XXXXXXXXX" />
+          </label>
+          <p class="help">Demo flow for illustration only.</p>
+        </div>
+
+        <div class="right">
+          <a class="btn ghost" href="cart.html">Back to Cart</a>
+          <button class="btn primary" type="submit">Place Order</button>
+        </div>
+
+        <p id="checkoutMsg" class="msg"></p>
+      </form>
+    </section>
+
+    <aside class="card section">
+      <h3>Order Summary</h3>
+      <div class="hr"></div>
+      <table class="table" style="margin-top:6px">
+        <thead><tr><th>Item</th><th>Qty</th><th>Total</th></tr></thead>
+        <tbody id="summaryBody"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2">Subtotal</td>
+            <td id="summarySubtotal">BDT.0.00</td>
+          </tr>
+          <tr>
+            <td colspan="2">Shipping</td>
+            <td id="summaryShipping">BDT.5.00</td>
+          </tr>
+          <tr>
+            <td colspan="2">Grand Total</td>
+            <td id="summaryGrand">BDT.0.00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </aside>
+  </div>
+</main>
+
+<footer class="footer">© <span id="year"></span> ShopX.</footer>
+
+<script src="assets/data.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/cart.js"></script>
+<script>
+  renderAuthArea();
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Determine if "Buy Now" (single item) or full cart
+  const params = new URLSearchParams(location.search);
+  const buyId = params.get('buy');
+  let items = [];
+  if (buyId){
+    // store a temp single-item selection for checkout
+    setBuyNowItem(buyId);
+    items = [{ ...window.DB.products.find(p=>p.id===buyId), qty: 1 }];
+  } else {
+    clearBuyNowItem();
+    items = cartItemsExpanded();
+  }
+
+  // If no items, redirect to cart
+  if (!items.length) location.href = 'cart.html';
+
+  // Render summary
+  const body = document.getElementById('summaryBody');
+  body.innerHTML = items.map(it=>`
+    <tr>
+      <td>${it.title}</td>
+      <td>${it.qty}</td>
+      <td>${formatPrice(it.price*it.qty)}</td>
+    </tr>
+  `).join('');
+  const shipping = 5;
+  const subtotal = items.reduce((s,i)=>s+i.price*i.qty,0);
+  const grand = subtotal + shipping;
+  document.getElementById('summarySubtotal').textContent = formatPrice(subtotal);
+  document.getElementById('summaryShipping').textContent = formatPrice(shipping);
+  document.getElementById('summaryGrand').textContent = formatPrice(grand);
+
+  // Payment method toggles
+  const payMethod = document.getElementById('payMethod');
+  const cardBox = document.getElementById('cardBox');
+  const walletBox = document.getElementById('walletBox');
+  function togglePayUI(){
+    cardBox.style.display = payMethod.value==='card' ? 'block' : 'none';
+    walletBox.style.display = payMethod.value==='wallet' ? 'block' : 'none';
+  }
+  payMethod.addEventListener('change', togglePayUI);
+  togglePayUI();
+
+  // Submit
+  document.getElementById('checkoutForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const shippingInfo = {
+      name: f.get('name'), phone: f.get('phone'),
+      address: f.get('address'), city: f.get('city'), zip: f.get('zip')
+    };
+    const payment = payMethod.value;
+    // Minimal input checks for demo flows
+    if (payment==='card'){
+      if (!document.getElementById('cardNumber').value) return showMsg('Enter a demo card number.','error');
+    }
+    if (payment==='wallet'){
+      if (!document.getElementById('walletNumber').value) return showMsg('Enter a demo wallet number.','error');
+    }
+
+    // Create order (demo)
+    const order = {
+      id: 'ORD-' + Math.random().toString(36).slice(2,8).toUpperCase(),
+      when: new Date().toISOString(),
+      items: items.map(({id,title,price,qty})=>({id,title,price,qty})),
+      amounts: { subtotal, shipping, grand },
+      shipping: shippingInfo,
+      payment: { method: payment, status: payment==='cod' ? 'pending (COD)' : 'authorized (demo)' }
+    };
+    saveOrder(order);
+
+    // If came from full cart, clear cart
+    if (!buyId) clearCart();
+    clearBuyNowItem();
+
+    // Go to success page with order id
+    location.href = `success.html?id=${order.id}`;
+  });
+
+  function showMsg(t, type){
+    const el = document.getElementById('checkoutMsg');
+    el.textContent = t;
+    el.className = 'msg ' + (type || '');
+  }
+</script>
+</body>
+</html>

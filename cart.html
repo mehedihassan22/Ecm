@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShopX — Cart</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<header class="header">
+  <a class="logo" href="index.html">ShopX</a>
+  <nav class="nav">
+    <a href="index.html">Home</a>
+    <a href="category.html">Categories</a>
+    <a href="orders.html" id="ordersLink" style="display:none">Orders</a>
+  </nav>
+  <form id="siteSearchForm" class="site-search">
+    <input id="siteSearchInput" type="search" placeholder="Search products…" />
+    <select id="siteSearchCat">
+      <option value="all">All</option>
+    </select>
+    <button class="btn" type="submit">Search</button>
+  </form>
+  <div class="auth-area" id="authArea"></div>
+</header>
+
+
+<main class="container">
+  <h1>Your Cart</h1>
+
+  <div class="grid-2">
+    <section class="card section">
+      <table class="table">
+        <thead>
+          <tr><th>Item</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr>
+        </thead>
+        <tbody id="cartBody"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3">Subtotal</td>
+            <td id="subtotalCell">BDT.0.00</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="right">
+        <a class="btn ghost" href="category.html">Continue Shopping</a>
+        <a class="btn primary" href="checkout.html">Proceed to Checkout</a>
+      </div>
+    </section>
+
+    <aside class="card section">
+      <h3>Summary</h3>
+      <div class="hr"></div>
+      <div style="display:flex;justify-content:space-between">
+        <span>Subtotal</span><strong id="sumSubtotal">BDT.0.00</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <span>Shipping</span><span>Calculated at checkout</span>
+      </div>
+      <p class="help" style="margin-top:10px">
+        Taxes and shipping will be calculated at checkout.
+      </p>
+      <div class="right">
+        <a class="btn primary" href="checkout.html">Checkout</a>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer class="footer">© <span id="year"></span> ShopX.</footer>
+
+<script src="assets/data.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/cart.js"></script>
+<script>
+  renderAuthArea();
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  function refreshCartPage(){
+    const items = cartItemsExpanded();
+    renderCartTable('cartBody', items);
+    const subtotal = cartSubtotal(items);
+    document.getElementById('subtotalCell').textContent = formatPrice(subtotal);
+    document.getElementById('sumSubtotal').textContent = formatPrice(subtotal);
+  }
+  window.refreshCartPage = refreshCartPage;
+  refreshCartPage();
+</script>
+</body>
+</html>

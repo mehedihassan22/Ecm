@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShopX — Product</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<header class="header">
+  <a class="logo" href="index.html">ShopX</a>
+  <nav class="nav">
+    <a href="index.html">Home</a>
+    <a href="category.html">Categories</a>
+    <a href="orders.html" id="ordersLink" style="display:none">Orders</a>
+  </nav>
+  <form id="siteSearchForm" class="site-search">
+    <input id="siteSearchInput" type="search" placeholder="Search products…" />
+    <select id="siteSearchCat">
+      <option value="all">All</option>
+    </select>
+    <button class="btn" type="submit">Search</button>
+  </form>
+  <div class="auth-area" id="authArea"></div>
+</header>
+
+<main class="container">
+  <div id="prodWrap" class="product-detail card section" style="display:none"></div>
+
+  <section class="section">
+    <div class="section-title">
+      <h2>Related Products</h2>
+      <a class="link" href="category.html">Browse more</a>
+    </div>
+    <div id="relatedGrid" class="grid"></div>
+  </section>
+</main>
+
+<footer class="footer">© <span id="year"></span> ShopX.</footer>
+
+<script src="assets/data.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/app.js"></script>
+<script>
+  renderAuthArea();
+  wireGlobalSearch();
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // show Orders link for logged-in users
+  if (currentUser()) document.getElementById('ordersLink').style.display = 'inline-block';
+
+  // fill category dropdown in header search
+  const catSel = document.getElementById('siteSearchCat');
+  window.DB.categories.forEach(c => catSel.insertAdjacentHTML('beforeend', `<option value="${c.slug}">${c.name}</option>`));
+
+  const id = getParam('id');
+  const p = (window.DB.products || []).find(x => x.id === id);
+  if (!p) {
+    document.getElementById('prodWrap').style.display = 'block';
+    document.getElementById('prodWrap').innerHTML = `<p class="muted">Product not found.</p>`;
+  } else {
+    const el = document.getElementById('prodWrap');
+    el.style.display = 'block';
+    el.innerHTML = `
+      <div class="detail">
+        <div class="detail-media">
+          <img src="${p.image}" alt="${p.title}" />
+        </div>
+        <div class="detail-info">
+          <h1>${p.title}</h1>
+          <p class="muted">${labelFromCat(p.category)}</p>
+          <div class="price-lg">${formatPrice(p.price)}</div>
+          <p class="lead">${p.description || ''}</p>
+          <div class="right" style="justify-content:flex-start">
+            <button class="btn" onclick="addToCart('${p.id}',1)">Add to Cart</button>
+            <button class="btn primary" onclick="buyNow('${p.id}')">Buy Now</button>
+          </div>
+        </div>
+      </div>
+    `;
+    // related
+    const related = window.DB.products.filter(x => x.category === p.category && x.id !== p.id).slice(0, 8);
+    mountProducts('relatedGrid', related);
+  }
+</script>
+</body>
+</html>
